@@ -1,0 +1,57 @@
+﻿@using OrderManagement.Shared.Models
+@model IList<ProductSale>
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to ChannelEngine</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Product Name</th>
+                <th scope="col">Gtin</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="table-success">
+                    <td>
+                        @item.Name
+                    </td>
+                    <td>
+                        @item.Gtin
+                    </td>
+                    <td>
+                        @item.Quantity
+                    </td>
+                    <td>
+                        <button class="item-update-stock" productNo="@item.ProductNo" stock="25">Update Stock</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(".item-update-stock").click(function() {
+            var productNo = $(this).attr("productNo");
+            var stock = $(this).attr("stock");
+
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("SetStock")",
+                data: {
+                    productNo: productNo,
+                    stock: stock
+                }
+            });
+        })
+    </script>
+}
