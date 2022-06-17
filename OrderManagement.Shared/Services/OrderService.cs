@@ -1,4 +1,5 @@
-﻿using OrderManagement.Shared.Models;
+﻿using OrderManagement.Shared.Contracts;
+using OrderManagement.Shared.Models;
 
 namespace OrderManagement.Shared.Services;
 
@@ -42,8 +43,25 @@ public class OrderService : IOrderService
         return topFiveList;
     }
 
-    public void SetStock(string productNo, int stock)
+    public async Task SetStock(string productNo, int stock)
     {
+        if (string.IsNullOrEmpty(productNo))
+        {
+            throw new Exception("Product number is not specified.");
+        }
+
+        if (stock < 0)
+        {
+            throw new Exception("Stock amount cannot be a negative number.");
+        }
+
+        var products = await GetTopFiveSoldProducts();
+        var product = products.FirstOrDefault(p => p.ProductNo == productNo);
+        if (product == null)
+        {
+            throw new Exception("Product not found.");
+        }
+
         _orderApiClient.SetStock(productNo, stock);
     }
 

@@ -1,6 +1,7 @@
 ﻿using ConsoleTables;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OrderManagement.Shared.Contracts;
 using OrderManagement.Shared.Services;
 
 namespace OrderManagement.Console;
@@ -74,11 +75,11 @@ internal class Program
         var productSales = await _orderService.GetTopFiveSoldProducts();
         if (productSales.Count == 0)
         {
-            System.Console.WriteLine("There isn't any product to set the stock!");
+            System.Console.WriteLine("There isn't any product in the list.");
             return;
         }
         await DisplayProducts();
-        System.Console.WriteLine("Please select the index of a product to set its stock:");
+        System.Console.WriteLine("Please select the index of a product to set its stock amount:");
 
         var key = System.Console.ReadLine();
         if (key != null)
@@ -95,7 +96,7 @@ internal class Program
             }
 
             var product = productSales[index - 1];
-            _orderService.SetStock(product.ProductNo, stock);
+            await _orderService.SetStock(product.ProductNo, stock);
             System.Console.WriteLine($"The stock of {product.Name} product has been set to {stock}");
         }
     }
@@ -114,6 +115,16 @@ internal class Program
         services.AddTransient<IOrderService, OrderService>();
         services.AddTransient<IOrderApiClient, OrderApiClient>();
         services.AddSingleton(configuration);
+        services.AddHttpClient("namedType", c =>
+        {
+            c.BaseAddress = new Uri("https://api-dev.channelengine.net/api/v2");
+            double timeOut = 10;
+            if (configuration.GetChildren().Any(c => c.Key == "HttpRequestTimeOutSecond"))
+            {
+                timeOut = double.Parse(configuration["HttpRequestTimeOutSecond"]);
+            }
+            c.Timeout = TimeSpan.FromSeconds(timeOut);
+        });
     }
 
     #endregion

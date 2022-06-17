@@ -1,10 +1,10 @@
 ﻿using OrderManagement.Shared.Models;
 
-namespace OrderManagement.Shared.Services;
+namespace OrderManagement.Shared.Contracts;
 
 public interface IOrderService
 {
     Task<IList<ProductSale>> GetTopFiveSoldProducts();
 
-    void SetStock(string productNo, int stock);
+    Task SetStock(string productNo, int stock);
 }

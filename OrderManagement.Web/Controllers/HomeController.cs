@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using OrderManagement.Shared.Services;
+﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
+using OrderManagement.Shared.Contracts;
+using OrderManagement.Web.Models;
 
 namespace OrderManagement.Web.Controllers;
 
@@ -32,9 +34,20 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult SetStock(string productNo, int stock)
     {
-        _orderService.SetStock(productNo, stock);
+       _orderService.SetStock(productNo, stock);
 
         return Ok();
+    }
+
+    public IActionResult Privacy()
+    {
+        return View();
+    }
+
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error()
+    {
+        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 
     #endregion

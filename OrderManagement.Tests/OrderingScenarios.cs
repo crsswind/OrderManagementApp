@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using FakeItEasy;
+using OrderManagement.Shared.Contracts;
 using OrderManagement.Shared.Models;
 using OrderManagement.Shared.Services;
 using Xunit;
 
 namespace OrderManagement.Tests;
 
-public class UnitTest1
+public class OrderingScenarios
 {
     [Fact]
     public void Sort_And_Sum_OrderResponse_Test()
@@ -18,8 +19,7 @@ public class UnitTest1
 
         var productDict = InitProducts();
 
-        A.CallTo(() => dummyApiClient.GetAllProducts(A<IEnumerable<string>>.That
-            .IsSameSequenceAs("5", "4", "7", "8", "2"))).Returns(productDict);
+        A.CallTo(() => dummyApiClient.GetAllProducts(A<IEnumerable<string>>.That.IsSameSequenceAs("5", "4", "7", "8", "2"))).Returns(productDict);
 
         var orderService = new OrderService(dummyApiClient);
         var topFiveSoldProducts = orderService.GetTopFiveSoldProducts().Result;
@@ -97,6 +97,7 @@ public class UnitTest1
                 }
             }
         };
+
         return productDict;
     }
 
@@ -249,6 +250,7 @@ public class UnitTest1
                 }
             }
         };
+
         return orderResponseList;
     }
 }

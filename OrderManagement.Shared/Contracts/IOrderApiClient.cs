@@ -1,6 +1,6 @@
 ﻿using OrderManagement.Shared.Models;
 
-namespace OrderManagement.Shared.Services;
+namespace OrderManagement.Shared.Contracts;
 
 public interface IOrderApiClient
 {

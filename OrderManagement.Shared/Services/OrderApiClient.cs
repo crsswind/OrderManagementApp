@@ -1,26 +1,28 @@
 ﻿using System.Text;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using OrderManagement.Shared.Contracts;
 using OrderManagement.Shared.Models;
 
 namespace OrderManagement.Shared.Services;
 
 public class OrderApiClient : IOrderApiClient
 {
+    private readonly IConfiguration _configuration;
+    private readonly IHttpClientFactory _httpClientFactory;
+
     #region Fields
 
-    private static readonly HttpClient Client = new();
     private readonly string _apiKey;
-    private const string OrderUrl = "https://api-dev.channelengine.net/api/v2/orders?statuses=in_progress";
-    private const string UpdateProductUrl = "https://api-dev.channelengine.net/api/v2/products";
-    private const string ProductUrl = "https://api-dev.channelengine.net/api/v2/products?";
 
     #endregion
 
     #region Constructors
 
-    public OrderApiClient(IConfiguration configuration)
+    public OrderApiClient(IConfiguration configuration, IHttpClientFactory httpClientFactory)
     {
+        _configuration = configuration;
+        _httpClientFactory = httpClientFactory;
         _apiKey = configuration["ApiKey"];
     }
 
@@ -30,7 +32,8 @@ public class OrderApiClient : IOrderApiClient
 
     public void SetStock(string productNo, int stock)
     {
-        var uri = $"{UpdateProductUrl}/{productNo}?apikey={_apiKey}";
+        var client = _httpClientFactory.CreateClient("ChannelEngine");
+        var uri = new Uri($"{_configuration["UpdateProductUrl"]}/{productNo}?apikey={_apiKey}");
         var body = new
         {
             value = $"{stock}",
@@ -42,13 +45,14 @@ public class OrderApiClient : IOrderApiClient
         var buffer = Encoding.UTF8.GetBytes(content);
         var byteContent = new ByteArrayContent(buffer);
 
-        Client.PatchAsync(uri, byteContent);
+        client.PatchAsync(uri, byteContent);
     }
 
     public async Task<IList<Order>> GetAllInProgressOrders()
     {
-        var uri = $"{OrderUrl}&apikey={_apiKey}";
-        var response = await Client.GetAsync(uri);
+        var client = _httpClientFactory.CreateClient("ChannelEngine");
+        var uri = new Uri($"{_configuration["OrderUrl"]}&apikey={_apiKey}");
+        var response = await client.GetAsync(uri);
         response.EnsureSuccessStatusCode();
         var responseBody = response.Content.ReadAsStringAsync().Result;
         var orders = JsonConvert.DeserializeObject<OrderCollection>(responseBody);
@@ -59,12 +63,13 @@ public class OrderApiClient : IOrderApiClient
     public async Task<IDictionary<string, Product>> GetAllProducts(IEnumerable<string> productNoList)
     {
         var productNoListString = string.Join('&', productNoList.Select(x => $"merchantProductNoList={x}"));
-        var url = $"{ProductUrl}&apikey={_apiKey}&{productNoListString}";
-        var responseBody = await Client.GetAsync(url).Result.Content.ReadAsStringAsync();
+        var client = _httpClientFactory.CreateClient("ChannelEngine");
+        var url = new Uri($"{_configuration["ProductUrl"]}&apikey={_apiKey}&{productNoListString}");
+        var responseBody = await client.GetAsync(url).Result.Content.ReadAsStringAsync();
         var products = JsonConvert.DeserializeObject<ProductCollection>(responseBody).Content.ToDictionary(x => x.MerchantProductNo);
 
         return products;
-    } 
-    
+    }
+
     #endregion
 }

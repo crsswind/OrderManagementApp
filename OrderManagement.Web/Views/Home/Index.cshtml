@@ -50,6 +50,9 @@
                 data: {
                     productNo: productNo,
                     stock: stock
+                },
+                error: function() {
+                    window.location.href = "/Home/Error/";
                 }
             });
         })
